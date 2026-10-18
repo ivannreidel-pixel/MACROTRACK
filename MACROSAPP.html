@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>MacroTracker Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- Configuración Web App Móvil PWA / Standalone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MacroTracker">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#090d16">
+
+  <!-- Ícono SVG vectorizado en alta definición -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2310b981'/%3E%3Cstop offset='100%25' stop-color='%23047857'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='115' fill='url(%23g)'/%3E%3Cpath d='M256 96c-88.4 0-160 71.6-160 160 0 76.5 53.6 140.5 125.4 156.2 11.5 2.5 23.3 3.8 35.6 3.8 88.4 0 160-71.6 160-160S344.4 96 256 96zm0 280c-66.3 0-120-53.7-120-120 0-49.8 30.3-92.6 73.4-110.8 14.5 29.3 39 52.8 69.4 65.6 11.8 5 24.8 7.8 38.2 8.2-1.6 86.6-72.3 157-161 157z' fill='%23ffffff' opacity='0.25'/%3E%3Cpath d='M295 180c-25-30-65-45-105-35-10 25-5 65 20 95 25 30 65 45 105 35 10-25 5-65-20-95z' fill='%23ffffff'/%3E%3Ccircle cx='345' cy='325' r='45' fill='%23f59e0b'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2310b981'/%3E%3Cstop offset='100%25' stop-color='%23047857'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='115' fill='url(%23g)'/%3E%3Cpath d='M295 180c-25-30-65-45-105-35-10 25-5 65 20 95 25 30 65 45 105 35 10-25 5-65-20-95z' fill='%23ffffff'/%3E%3Ccircle cx='345' cy='325' r='45' fill='%23f59e0b'/%3E%3C/svg%3E">
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #223049;
+      --text: #f1f5f9;
+      --muted: #8899b5;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --carb: #38bdf8;
+      --prot: #f43f5e;
+      --fat: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 14px; padding-bottom: 70px; }
+    .container { max-width: 520px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    h1 { font-size: 1.2rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .online-indicator { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; display: inline-block; box-shadow: 0 0 6px var(--accent); }
+    .date-badge { font-size: 0.75rem; background: var(--border); padding: 4px 8px; border-radius: 6px; color: var(--muted); }
+    
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .card-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    label { font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; display: block; }
+    select, input { width: 100%; background: #090d16; border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 8px 10px; font-size: 0.85rem; outline: none; }
+    select:focus, input:focus { border-color: var(--accent); }
+    
+    .progress-container { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+    .progress-bar-wrap { width: 100%; background: #090d16; height: 7px; border-radius: 4px; overflow: hidden; margin-top: 3px; }
+    .progress-bar { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+    .macro-meta { display: flex; justify-content: space-between; font-size: 0.75rem; }
+
+    .food-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+    .food-row input[type="text"] { flex: 2; }
+    .food-row input[type="number"] { flex: 1; }
+    .btn-remove { background: #1c273c; border: none; color: #f87171; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+
+    .btn { display: block; width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; text-align: center; }
+    .btn-outline { background: transparent; border: 1px dashed var(--muted); color: var(--muted); margin-bottom: 8px; }
+    .btn-primary { background: var(--accent); color: #022c22; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status-msg { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 6px; min-height: 16px; }
+
+    .meals-list { margin-top: 8px; max-height: 240px; overflow-y: auto; }
+    .meal-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-desc { display: flex; flex-direction: column; }
+    .meal-name { font-weight: 600; color: #fff; }
+    .meal-sub { font-size: 0.7rem; color: var(--muted); }
+    .meal-source { font-size: 0.65rem; color: #64748b; }
+    .meal-del { background: transparent; border: none; color: #ef4444; font-size: 0.95rem; cursor: pointer; padding: 4px 6px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1><span class="online-indicator"></span> MacroTracker</h1>
+    <span class="date-badge" id="current-date-label"></span>
+  </header>
+
+  <!-- Panel de Metas Nutricionales -->
+  <div class="card">
+    <div class="card-title">Objetivo Nutricional</div>
+    <div class="grid-2">
+      <div>
+        <label>Estrategia</label>
+        <select id="goal-select" onchange="updateTargets()">
+          <option value="mantenimiento">Mantenimiento (40C / 30P / 30G)</option>
+          <option value="definicion">Definición (30C / 40P / 30G)</option>
+          <option value="volumen">Volumen (50C / 25P / 25G)</option>
+          <option value="lowcarb">Low Carb (15C / 35P / 50G)</option>
+        </select>
+      </div>
+      <div>
+        <label>Calorías Diarias</label>
+        <input type="number" id="calories-goal" value="2000" step="50" onchange="updateTargets()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard de Macros -->
+  <div class="card">
+    <div class="card-title">
+      <span>Progreso de Hoy</span>
+      <span id="cal-count" style="color: var(--accent); font-weight: 700;">0 / 2000 kcal</span>
+    </div>
+    <div class="progress-container">
+      <div>
+        <div class="macro-meta">
+          <span style="color: var(--prot);">Proteína</span>
+          <span id="p-count">0 / 150g</span>
+        </div>
+        <div class="progress-bar-wrap"><div id="p-bar" class="progress-bar" style="background: var(--prot); width: 0%;"></div></div>
+      </div>
+      <div>
+        <div class="macro-meta">
+          <span style="color: var(--carb);">Carbohidratos</span>
+          <span id="c-count">0 / 200g</span>
+        </div>
+        <div class="progress-bar-wrap"><div id="c-bar" class="progress-bar" style="background: var(--carb); width: 0%;"></div></div>
+      </div>
+      <div>
+        <div class="macro-meta">
+          <span style="color: var(--fat);">Grasas</span>
+          <span id="f-count">0 / 67g</span>
+        </div>
+        <div class="progress-bar-wrap"><div id="f-bar" class="progress-bar" style="background: var(--fat); width: 0%;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Entrada Dinámica de Alimentos -->
+  <div class="card">
+    <div class="card-title">Registrar Alimentos</div>
+    <div id="inputs-container">
+      <div class="food-row">
+        <input type="text" placeholder="Ej: Pollo, Arroz yamani, Queso..." class="food-name" onkeydown="handleKey(event)">
+        <input type="number" placeholder="Gramos" class="food-grams" onkeydown="handleKey(event)">
+        <button class="btn-remove" onclick="removeRow(this)">×</button>
+      </div>
+    </div>
+    <button class="btn btn-outline" onclick="addRow()">+ Agregar otro casillero</button>
+    <button class="btn btn-primary" id="btn-submit" onclick="processMeals()">Buscar y Registrar</button>
+    <div class="status-msg" id="status-msg"></div>
+  </div>
+
+  <!-- Historial Diario -->
+  <div class="card">
+    <div class="card-title">
+      <span>Consumido Hoy</span>
+      <button onclick="clearToday()" style="background:none; border:none; color:var(--muted); font-size:0.75rem; cursor:pointer;">Reiniciar día</button>
+    </div>
+    <div class="meals-list" id="meals-list">
+      <div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 1. Base científica estándar verificada (USDA / Argenfoods por 100g)
+  const CORE_DB = {
+    "pechuga": { name: "Pechuga de pollo cocida", cal: 165, p: 31.0, c: 0.0, f: 3.6, src: "USDA" },
+    "pollo": { name: "Pechuga de pollo cocida", cal: 165, p: 31.0, c: 0.0, f: 3.6, src: "USDA" },
+    "carne": { name: "Carne vacuna magra cocida", cal: 210, p: 26.0, c: 0.0, f: 11.0, src: "USDA" },
+    "bife": { name: "Bife de cuadril / lomo magro", cal: 205, p: 27.0, c: 0.0, f: 10.5, src: "USDA" },
+    "ossobuco": { name: "Ossobuco cocido", cal: 195, p: 28.0, c: 0.0, f: 9.0, src: "USDA" },
+    "merluza": { name: "Filete de merluza cocido", cal: 90, p: 18.0, c: 0.0, f: 1.5, src: "USDA" },
+    "pescado": { name: "Pescado blanco cocido", cal: 90, p: 18.0, c: 0.0, f: 1.5, src: "USDA" },
+    "atun": { name: "Atún al natural escurrido", cal: 116, p: 26.0, c: 0.0, f: 1.0, src: "USDA" },
+    "huevo": { name: "Huevo entero cocido", cal: 143, p: 13.0, c: 0.7, f: 9.5, src: "USDA" },
+    "clara": { name: "Clara de huevo", cal: 52, p: 11.0, c: 0.7, f: 0.2, src: "USDA" },
+    "arroz yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, src: "USDA" },
+    "yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, src: "USDA" },
+    "arroz blanco": { name: "Arroz blanco cocido", cal: 130, p: 2.7, c: 28.0, f: 0.3, src: "USDA" },
+    "arroz": { name: "Arroz cocido estándar", cal: 130, p: 2.7, c: 28.0, f: 0.3, src: "USDA" },
+    "avena": { name: "Avena arrollada en copos", cal: 389, p: 16.9, c: 66.0, f: 6.9, src: "USDA" },
+    "batata": { name: "Batata cocida / asada", cal: 86, p: 1.6, c: 20.0, f: 0.1, src: "USDA" },
+    "papa": { name: "Papa cocida", cal: 87, p: 1.9, c: 20.0, f: 0.1, src: "USDA" },
+    "lentejas": { name: "Lentejas cocidas", cal: 116, p: 9.0, c: 20.0, f: 0.4, src: "USDA" },
+    "aceite de oliva": { name: "Aceite de oliva virgen extra", cal: 884, p: 0.0, c: 0.0, f: 100.0, src: "USDA" },
+    "aceite": { name: "Aceite vegetal", cal: 884, p: 0.0, c: 0.0, f: 100.0, src: "USDA" },
+    "palta": { name: "Palta / Aguacate fresco", cal: 160, p: 2.0, c: 8.5, f: 14.7, src: "USDA" },
+    "nueces": { name: "Nueces peladas", cal: 654, p: 15.2, c: 13.7, f: 65.2, src: "USDA" },
+    "almendras": { name: "Almendras", cal: 579, p: 21.1, c: 21.6, f: 49.9, src: "USDA" },
+    "manzana": { name: "Manzana fresca con cáscara", cal: 52, p: 0.3, c: 13.8, f: 0.2, src: "USDA" },
+    "banana": { name: "Banana fresca", cal: 89, p: 1.1, c: 22.8, f: 0.3, src: "USDA" },
+    "tomate": { name: "Tomate redondo fresco", cal: 18, p: 0.9, c: 3.9, f: 0.2, src: "USDA" }
+  };
+
+  function getTodayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  let state = {
+    date: getTodayKey(),
+    goal: 'mantenimiento',
+    targetCal: 2000,
+    history: {},
+    cachedWebFoods: {}
+  };
+
+  function initApp() {
+    const saved = localStorage.getItem('macro_tracker_store_v2');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        state.history = parsed.history || {};
+        state.goal = parsed.goal || 'mantenimiento';
+        state.targetCal = parsed.targetCal || 2000;
+        state.cachedWebFoods = parsed.cachedWebFoods || {};
+        document.getElementById('goal-select').value = state.goal;
+        document.getElementById('calories-goal').value = state.targetCal;
+      } catch (e) {}
+    }
+
+    state.date = getTodayKey();
+    document.getElementById('current-date-label').innerText = state.date;
+    
+    if (!state.history[state.date]) {
+      state.history[state.date] = [];
+      saveState();
+    }
+    
+    updateTargets();
+    renderMeals();
+  }
+
+  function saveState() {
+    localStorage.setItem('macro_tracker_store_v2', JSON.stringify({
+      history: state.history,
+      goal: state.goal,
+      targetCal: state.targetCal,
+      cachedWebFoods: state.cachedWebFoods
+    }));
+  }
+
+  function addRow() {
+    const container = document.getElementById('inputs-container');
+    const div = document.createElement('div');
+    div.className = 'food-row';
+    div.innerHTML = `
+      <input type="text" placeholder="Alimento..." class="food-name" onkeydown="handleKey(event)">
+      <input type="number" placeholder="Gramos" class="food-grams" onkeydown="handleKey(event)">
+      <button class="btn-remove" onclick="removeRow(this)">×</button>
+    `;
+    container.appendChild(div);
+    div.querySelector('.food-name').focus();
+  }
+
+  function removeRow(btn) {
+    const rows = document.querySelectorAll('.food-row');
+    if (rows.length > 1) {
+      btn.parentElement.remove();
+    } else {
+      btn.parentElement.querySelector('.food-name').value = '';
+      btn.parentElement.querySelector('.food-grams').value = '';
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter') processMeals();
+  }
+
+  // Consulta en internet con Open Food Facts API
+  async function fetchNutritionalDataOnline(query) {
+    try {
+      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=5`;
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const data = await response.json();
+      
+      if (data && data.products && data.products.length > 0) {
+        // Encontrar el primer producto con datos de macronutrientes completos
+        for (let p of data.products) {
+          const n = p.nutriments;
+          if (n) {
+            const cal = n['energy-kcal_100g'] || (n['energy-kcal'] ? parseFloat(n['energy-kcal']) : null);
+            const prot = n['proteins_100g'] !== undefined ? parseFloat(n['proteins_100g']) : null;
+            const carbs = n['carbohydrates_100g'] !== undefined ? parseFloat(n['carbohydrates_100g']) : null;
+            const fat = n['fat_100g'] !== undefined ? parseFloat(n['fat_100g']) : null;
+
+            if (cal !== null && prot !== null && carbs !== null && fat !== null) {
+              return {
+                name: p.product_name_es || p.product_name || query,
+                cal: Math.round(cal),
+                p: Math.round(prot * 10) / 10,
+                c: Math.round(carbs * 10) / 10,
+                f: Math.round(fat * 10) / 10,
+                src: "Open Food Facts"
+              };
+            }
+          }
+        }
+      }
+      return null;
+    } catch (err) {
+      console.warn("Falla de conexión a Open Food Facts:", err);
+      return null;
+    }
+  }
+
+  async function resolveFoodMacros(rawName) {
+    const clean = rawName.toLowerCase().trim();
+
+    // 1. Verificar base científica estandarizada
+    if (CORE_DB[clean]) return CORE_DB[clean];
+    for (let key in CORE_DB) {
+      if (clean.includes(key) || key.includes(clean)) return CORE_DB[key];
+    }
+
+    // 2. Verificar caché local previa
+    if (state.cachedWebFoods[clean]) return state.cachedWebFoods[clean];
+
+    // 3. Consultar online vía API
+    const onlineResult = await fetchNutritionalDataOnline(clean);
+    if (onlineResult) {
+      state.cachedWebFoods[clean] = onlineResult;
+      saveState();
+      return onlineResult;
+    }
+
+    return null;
+  }
+
+  async function processMeals() {
+    const rows = document.querySelectorAll('.food-row');
+    const itemsToProcess = [];
+
+    rows.forEach(r => {
+      const name = r.querySelector('.food-name').value.trim();
+      const grams = parseFloat(r.querySelector('.food-grams').value);
+      if (name && !isNaN(grams) && grams > 0) {
+        itemsToProcess.push({ name, grams });
+      }
+    });
+
+    if (itemsToProcess.length === 0) return;
+
+    const btn = document.getElementById('btn-submit');
+    const status = document.getElementById('status-msg');
+    btn.disabled = true;
+    status.innerText = "Consultando base nutricional...";
+
+    const newItems = [];
+    const notFound = [];
+
+    for (let item of itemsToProcess) {
+      const macros = await resolveFoodMacros(item.name);
+      if (macros) {
+        const factor = item.grams / 100;
+        newItems.push({
+          id: Date.now() + Math.random(),
+          name: macros.name || item.name,
+          grams: item.grams,
+          cal: Math.round(macros.cal * factor),
+          p: Math.round(macros.p * factor * 10) / 10,
+          c: Math.round(macros.c * factor * 10) / 10,
+          f: Math.round(macros.f * factor * 10) / 10,
+          src: macros.src
+        });
+      } else {
+        notFound.push(item.name);
+      }
+    }
+
+    btn.disabled = false;
+    status.innerText = "";
+
+    if (notFound.length > 0) {
+      alert(`No se encontró información verificada para: "${notFound.join(', ')}". Probá especificar la marca o utilizar un término más genérico.`);
+    }
+
+    if (newItems.length > 0) {
+      if (!state.history[state.date]) state.history[state.date] = [];
+      state.history[state.date].push(...newItems);
+      saveState();
+      renderMeals();
+
+      // Resetear a un casillero limpio
+      const container = document.getElementById('inputs-container');
+      container.innerHTML = `
+        <div class="food-row">
+          <input type="text" placeholder="Ej: Pollo, Arroz yamani..." class="food-name" onkeydown="handleKey(event)">
+          <input type="number" placeholder="Gramos" class="food-grams" onkeydown="handleKey(event)">
+          <button class="btn-remove" onclick="removeRow(this)">×</button>
+        </div>
+      `;
+    }
+  }
+
+  function deleteMeal(id) {
+    state.history[state.date] = (state.history[state.date] || []).filter(item => item.id !== id);
+    saveState();
+    renderMeals();
+  }
+
+  function clearToday() {
+    if (confirm("¿Vaciar todos los alimentos registrados hoy?")) {
+      state.history[state.date] = [];
+      saveState();
+      renderMeals();
+    }
+  }
+
+  function updateTargets() {
+    state.goal = document.getElementById('goal-select').value;
+    state.targetCal = parseInt(document.getElementById('calories-goal').value) || 2000;
+    saveState();
+    renderDashboard();
+  }
+
+  function getMacroRatios(cal, goal) {
+    let cp = 0.4, pp = 0.3, fp = 0.3;
+    if (goal === 'definicion') { cp = 0.3; pp = 0.4; fp = 0.3; }
+    else if (goal === 'volumen') { cp = 0.5; pp = 0.25; fp = 0.25; }
+    else if (goal === 'lowcarb') { cp = 0.15; pp = 0.35; fp = 0.50; }
+
+    return {
+      p: Math.round((cal * pp) / 4),
+      c: Math.round((cal * cp) / 4),
+      f: Math.round((cal * fp) / 9)
+    };
+  }
+
+  function renderDashboard() {
+    const list = state.history[state.date] || [];
+    const totals = list.reduce((acc, cur) => {
+      acc.cal += cur.cal;
+      acc.p += cur.p;
+      acc.c += cur.c;
+      acc.f += cur.f;
+      return acc;
+    }, { cal: 0, p: 0, c: 0, f: 0 });
+
+    const targets = getMacroRatios(state.targetCal, state.goal);
+
+    document.getElementById('cal-count').innerText = `${totals.cal} / ${state.targetCal} kcal`;
+    document.getElementById('p-count').innerText = `${Math.round(totals.p)} / ${targets.p}g`;
+    document.getElementById('c-count').innerText = `${Math.round(totals.c)} / ${targets.c}g`;
+    document.getElementById('f-count').innerText = `${Math.round(totals.f)} / ${targets.f}g`;
+
+    document.getElementById('p-bar').style.width = Math.min(100, (totals.p / targets.p) * 100) + '%';
+    document.getElementById('c-bar').style.width = Math.min(100, (totals.c / targets.c) * 100) + '%';
+    document.getElementById('f-bar').style.width = Math.min(100, (totals.f / targets.f) * 100) + '%';
+  }
+
+  function renderMeals() {
+    renderDashboard();
+    const listEl = document.getElementById('meals-list');
+    const items = state.history[state.date] || [];
+
+    if (items.length === 0) {
+      listEl.innerHTML = `<div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = items.map(item => `
+      <div class="meal-item">
+        <div class="meal-desc">
+          <span class="meal-name">${item.name} (${item.grams}g)</span>
+          <span class="meal-sub">${item.cal} kcal | P: ${item.p}g · C: ${item.c}g · G: ${item.f}g</span>
+          <span class="meal-source">Fuente: ${item.src || 'Referencia verificada'}</span>
+        </div>
+        <button class="meal-del" onclick="deleteMeal(${item.id})">🗑️</button>
+      </div>
+    `).reverse().join('');
+  }
+
+  initApp();
+</script>
+
+</body>
+</html>
