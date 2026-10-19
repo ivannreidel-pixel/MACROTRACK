@@ -5,16 +5,13 @@
   <title>MacroTracker Pro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <!-- Enlace al manifiesto de Android -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Metadatos de interfaz -->
   <meta name="theme-color" content="#090d16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MacroTracker">
 
-  <!-- Nuevos iconos PNG -->
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
 
@@ -26,6 +23,7 @@
       --text: #f1f5f9;
       --muted: #8899b5;
       --accent: #10b981;
+      --accent-hover: #059669;
       --carb: #38bdf8;
       --prot: #f43f5e;
       --fat: #fbbf24;
@@ -61,6 +59,8 @@
     .btn-outline { background: transparent; border: 1px dashed var(--muted); color: var(--muted); margin-bottom: 8px; }
     .btn-primary { background: var(--accent); color: #022c22; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-export { background: #1e293b; border: 1px solid var(--border); color: #38bdf8; font-weight: 500; font-size: 0.75rem; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-export:active { background: #334155; }
 
     .status-msg { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 6px; min-height: 16px; }
 
@@ -152,6 +152,19 @@
     </div>
     <div class="meals-list" id="meals-list">
       <div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>
+    </div>
+  </div>
+
+  <!-- Gestión de Archivos y Copia de Seguridad -->
+  <div class="card">
+    <div class="card-title">Exportar Historial Mensual</div>
+    <div class="grid-2">
+      <button class="btn-export" onclick="exportToCSV()">
+        📊 Descargar Excel (CSV)
+      </button>
+      <button class="btn-export" onclick="exportBackupJSON()" style="color: var(--accent);">
+        💾 Copia JSON
+      </button>
     </div>
   </div>
 </div>
@@ -463,6 +476,49 @@
         <button class="meal-del" onclick="deleteMeal(${item.id})">🗑️</button>
       </div>
     `).reverse().join('');
+  }
+
+  // Función para exportar todo el historial mensual/acumulado a CSV (Excel)
+  function exportToCSV() {
+    const dates = Object.keys(state.history).sort();
+    if (dates.length === 0 || dates.every(d => state.history[d].length === 0)) {
+      alert("Aún no hay registros cargados para exportar.");
+      return;
+    }
+
+    // Cabecera CSV en español con BOM UTF-8 para que Excel lo abra perfecto
+    let csv = "\uFEFFFecha;Alimento;Gramos;Calorías (kcal);Proteínas (g);Carbohidratos (g);Grasas (g);Fuente\n";
+
+    dates.forEach(date => {
+      const items = state.history[date] || [];
+      items.forEach(it => {
+        const cleanName = (it.name || '').replace(/;/g, ',');
+        const cleanSrc = (it.src || 'Referencia').replace(/;/g, ',');
+        csv += `${date};"${cleanName}";${it.grams};${it.cal};${it.p};${it.c};${it.f};"${cleanSrc}"\n`;
+      });
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const now = new Date();
+    const fileName = `macrotracker_registro_${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}.csv`;
+
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Copia de seguridad técnica en JSON (para restaurar o archivar)
+  function exportBackupJSON() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+    const link = document.createElement("a");
+    link.href = dataStr;
+    link.setAttribute("download", `macrotracker_backup_${getTodayKey()}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   initApp();
