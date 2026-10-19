@@ -175,4 +175,298 @@
     "huevo": { name: "Huevo entero cocido", cal: 143, p: 13.0, c: 0.7, f: 9.5, src: "USDA" },
     "clara": { name: "Clara de huevo", cal: 52, p: 11.0, c: 0.7, f: 0.2, src: "USDA" },
     "arroz yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, src: "USDA" },
-    "yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f:
+    "yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, src: "USDA" },
+    "arroz blanco": { name: "Arroz blanco cocido", cal: 130, p: 2.7, c: 28.0, f: 0.3, src: "USDA" },
+    "arroz": { name: "Arroz cocido estándar", cal: 130, p: 2.7, c: 28.0, f: 0.3, src: "USDA" },
+    "avena": { name: "Avena arrollada en copos", cal: 389, p: 16.9, c: 66.0, f: 6.9, src: "USDA" },
+    "batata": { name: "Batata cocida / asada", cal: 86, p: 1.6, c: 20.0, f: 0.1, src: "USDA" },
+    "papa": { name: "Papa cocida", cal: 87, p: 1.9, c: 20.0, f: 0.1, src: "USDA" },
+    "lentejas": { name: "Lentejas cocidas", cal: 116, p: 9.0, c: 20.0, f: 0.4, src: "USDA" },
+    "aceite de oliva": { name: "Aceite de oliva virgen extra", cal: 884, p: 0.0, c: 0.0, f: 100.0, src: "USDA" },
+    "aceite": { name: "Aceite vegetal", cal: 884, p: 0.0, c: 0.0, f: 100.0, src: "USDA" },
+    "palta": { name: "Palta / Aguacate fresco", cal: 160, p: 2.0, c: 8.5, f: 14.7, src: "USDA" },
+    "nueces": { name: "Nueces peladas", cal: 654, p: 15.2, c: 13.7, f: 65.2, src: "USDA" },
+    "almendras": { name: "Almendras", cal: 579, p: 21.1, c: 21.6, f: 49.9, src: "USDA" },
+    "manzana": { name: "Manzana fresca con cáscara", cal: 52, p: 0.3, c: 13.8, f: 0.2, src: "USDA" },
+    "banana": { name: "Banana fresca", cal: 89, p: 1.1, c: 22.8, f: 0.3, src: "USDA" },
+    "tomate": { name: "Tomate redondo fresco", cal: 18, p: 0.9, c: 3.9, f: 0.2, src: "USDA" }
+  };
+
+  function getTodayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  let state = {
+    date: getTodayKey(),
+    goal: 'mantenimiento',
+    targetCal: 2000,
+    history: {},
+    cachedWebFoods: {}
+  };
+
+  function initApp() {
+    const saved = localStorage.getItem('macro_tracker_store_v2');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        state.history = parsed.history || {};
+        state.goal = parsed.goal || 'mantenimiento';
+        state.targetCal = parsed.targetCal || 2000;
+        state.cachedWebFoods = parsed.cachedWebFoods || {};
+        document.getElementById('goal-select').value = state.goal;
+        document.getElementById('calories-goal').value = state.targetCal;
+      } catch (e) {}
+    }
+
+    state.date = getTodayKey();
+    document.getElementById('current-date-label').innerText = state.date;
+    
+    if (!state.history[state.date]) {
+      state.history[state.date] = [];
+      saveState();
+    }
+    
+    updateTargets();
+    renderMeals();
+  }
+
+  function saveState() {
+    localStorage.setItem('macro_tracker_store_v2', JSON.stringify({
+      history: state.history,
+      goal: state.goal,
+      targetCal: state.targetCal,
+      cachedWebFoods: state.cachedWebFoods
+    }));
+  }
+
+  function addRow() {
+    const container = document.getElementById('inputs-container');
+    const div = document.createElement('div');
+    div.className = 'food-row';
+    div.innerHTML = `
+      <input type="text" placeholder="Alimento..." class="food-name" onkeydown="handleKey(event)">
+      <input type="number" placeholder="Gramos" class="food-grams" onkeydown="handleKey(event)">
+      <button class="btn-remove" onclick="removeRow(this)">×</button>
+    `;
+    container.appendChild(div);
+    div.querySelector('.food-name').focus();
+  }
+
+  function removeRow(btn) {
+    const rows = document.querySelectorAll('.food-row');
+    if (rows.length > 1) {
+      btn.parentElement.remove();
+    } else {
+      btn.parentElement.querySelector('.food-name').value = '';
+      btn.parentElement.querySelector('.food-grams').value = '';
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter') processMeals();
+  }
+
+  async function fetchNutritionalDataOnline(query) {
+    try {
+      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=5`;
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const data = await response.json();
+      
+      if (data && data.products && data.products.length > 0) {
+        for (let p of data.products) {
+          const n = p.nutriments;
+          if (n) {
+            const cal = n['energy-kcal_100g'] || (n['energy-kcal'] ? parseFloat(n['energy-kcal']) : null);
+            const prot = n['proteins_100g'] !== undefined ? parseFloat(n['proteins_100g']) : null;
+            const carbs = n['carbohydrates_100g'] !== undefined ? parseFloat(n['carbohydrates_100g']) : null;
+            const fat = n['fat_100g'] !== undefined ? parseFloat(n['fat_100g']) : null;
+
+            if (cal !== null && prot !== null && carbs !== null && fat !== null) {
+              return {
+                name: p.product_name_es || p.product_name || query,
+                cal: Math.round(cal),
+                p: Math.round(prot * 10) / 10,
+                c: Math.round(carbs * 10) / 10,
+                f: Math.round(fat * 10) / 10,
+                src: "Open Food Facts"
+              };
+            }
+          }
+        }
+      }
+      return null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async function resolveFoodMacros(rawName) {
+    const clean = rawName.toLowerCase().trim();
+
+    if (CORE_DB[clean]) return CORE_DB[clean];
+    for (let key in CORE_DB) {
+      if (clean.includes(key) || key.includes(clean)) return CORE_DB[key];
+    }
+
+    if (state.cachedWebFoods[clean]) return state.cachedWebFoods[clean];
+
+    const onlineResult = await fetchNutritionalDataOnline(clean);
+    if (onlineResult) {
+      state.cachedWebFoods[clean] = onlineResult;
+      saveState();
+      return onlineResult;
+    }
+
+    return null;
+  }
+
+  async function processMeals() {
+    const rows = document.querySelectorAll('.food-row');
+    const itemsToProcess = [];
+
+    rows.forEach(r => {
+      const name = r.querySelector('.food-name').value.trim();
+      const grams = parseFloat(r.querySelector('.food-grams').value);
+      if (name && !isNaN(grams) && grams > 0) {
+        itemsToProcess.push({ name, grams });
+      }
+    });
+
+    if (itemsToProcess.length === 0) return;
+
+    const btn = document.getElementById('btn-submit');
+    const status = document.getElementById('status-msg');
+    btn.disabled = true;
+    status.innerText = "Consultando base nutricional...";
+
+    const newItems = [];
+    const notFound = [];
+
+    for (let item of itemsToProcess) {
+      const macros = await resolveFoodMacros(item.name);
+      if (macros) {
+        const factor = item.grams / 100;
+        newItems.push({
+          id: Date.now() + Math.random(),
+          name: macros.name || item.name,
+          grams: item.grams,
+          cal: Math.round(macros.cal * factor),
+          p: Math.round(macros.p * factor * 10) / 10,
+          c: Math.round(macros.c * factor * 10) / 10,
+          f: Math.round(macros.f * factor * 10) / 10,
+          src: macros.src
+        });
+      } else {
+        notFound.push(item.name);
+      }
+    }
+
+    btn.disabled = false;
+    status.innerText = "";
+
+    if (notFound.length > 0) {
+      alert(`No se encontró información para: "${notFound.join(', ')}". Probá un término más general.`);
+    }
+
+    if (newItems.length > 0) {
+      if (!state.history[state.date]) state.history[state.date] = [];
+      state.history[state.date].push(...newItems);
+      saveState();
+      renderMeals();
+
+      const container = document.getElementById('inputs-container');
+      container.innerHTML = `
+        <div class="food-row">
+          <input type="text" placeholder="Ej: Pollo, Arroz yamani..." class="food-name" onkeydown="handleKey(event)">
+          <input type="number" placeholder="Gramos" class="food-grams" onkeydown="handleKey(event)">
+          <button class="btn-remove" onclick="removeRow(this)">×</button>
+        </div>
+      `;
+    }
+  }
+
+  function deleteMeal(id) {
+    state.history[state.date] = (state.history[state.date] || []).filter(item => item.id !== id);
+    saveState();
+    renderMeals();
+  }
+
+  function clearToday() {
+    if (confirm("¿Vaciar todos los alimentos registrados hoy?")) {
+      state.history[state.date] = [];
+      saveState();
+      renderMeals();
+    }
+  }
+
+  function updateTargets() {
+    state.goal = document.getElementById('goal-select').value;
+    state.targetCal = parseInt(document.getElementById('calories-goal').value) || 2000;
+    saveState();
+    renderDashboard();
+  }
+
+  function getMacroRatios(cal, goal) {
+    let cp = 0.4, pp = 0.3, fp = 0.3;
+    if (goal === 'definicion') { cp = 0.3; pp = 0.4; fp = 0.3; }
+    else if (goal === 'volumen') { cp = 0.5; pp = 0.25; fp = 0.25; }
+    else if (goal === 'lowcarb') { cp = 0.15; pp = 0.35; fp = 0.50; }
+
+    return {
+      p: Math.round((cal * pp) / 4),
+      c: Math.round((cal * cp) / 4),
+      f: Math.round((cal * fp) / 9)
+    };
+  }
+
+  function renderDashboard() {
+    const list = state.history[state.date] || [];
+    const totals = list.reduce((acc, cur) => {
+      acc.cal += cur.cal;
+      acc.p += cur.p;
+      acc.c += cur.c;
+      acc.f += cur.f;
+      return acc;
+    }, { cal: 0, p: 0, c: 0, f: 0 });
+
+    const targets = getMacroRatios(state.targetCal, state.goal);
+
+    document.getElementById('cal-count').innerText = `${totals.cal} / ${state.targetCal} kcal`;
+    document.getElementById('p-count').innerText = `${Math.round(totals.p)} / ${targets.p}g`;
+    document.getElementById('c-count').innerText = `${Math.round(totals.c)} / ${targets.c}g`;
+    document.getElementById('f-count').innerText = `${Math.round(totals.f)} / ${targets.f}g`;
+
+    document.getElementById('p-bar').style.width = Math.min(100, (totals.p / targets.p) * 100) + '%';
+    document.getElementById('c-bar').style.width = Math.min(100, (totals.c / targets.c) * 100) + '%';
+    document.getElementById('f-bar').style.width = Math.min(100, (totals.f / targets.f) * 100) + '%';
+  }
+
+  function renderMeals() {
+    renderDashboard();
+    const listEl = document.getElementById('meals-list');
+    const items = state.history[state.date] || [];
+
+    if (items.length === 0) {
+      listEl.innerHTML = `<div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = items.map(item => `
+      <div class="meal-item">
+        <div class="meal-desc">
+          <span class="meal-name">${item.name} (${item.grams}g)</span>
+          <span class="meal-sub">${item.cal} kcal | P: ${item.p}g · C: ${item.c}g · G: ${item.f}g</span>
+          <span class="meal-source">Fuente: ${item.src || 'Referencia verificada'}</span>
+        </div>
+        <button class="meal-del" onclick="deleteMeal(${item.id})">🗑️</button>
+      </div>
+    `).reverse().join('');
+  }
+
+  initApp();
+</script>
+
+</body>
+</html>
