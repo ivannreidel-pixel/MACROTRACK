@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
   <link rel="manifest" href="manifest.json">
-
   <meta name="theme-color" content="#090d16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -27,20 +26,31 @@
       --carb: #38bdf8;
       --prot: #f43f5e;
       --fat: #fbbf24;
+      --fiber: #a78bfa;
+      --sodium: #f97316;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 14px; padding-bottom: 70px; }
+    body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 75px; }
     .container { max-width: 520px; margin: 0 auto; }
     
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     h1 { font-size: 1.2rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
     .online-indicator { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; display: inline-block; box-shadow: 0 0 6px var(--accent); }
     .date-badge { font-size: 0.75rem; background: var(--border); padding: 4px 8px; border-radius: 6px; color: var(--muted); }
+
+    /* Barra de Navegación por Pestañas */
+    .nav-tabs { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 14px; gap: 4px; }
+    .tab-btn { flex: 1; padding: 8px; background: transparent; border: none; color: var(--muted); font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: 0.2s; text-align: center; }
+    .tab-btn.active { background: #1e293b; color: #fff; border: 1px solid var(--border); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
     
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
     .card-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     label { font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; display: block; }
     select, input { width: 100%; background: #090d16; border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 8px 10px; font-size: 0.85rem; outline: none; }
     select:focus, input:focus { border-color: var(--accent); }
@@ -49,6 +59,10 @@
     .progress-bar-wrap { width: 100%; background: #090d16; height: 7px; border-radius: 4px; overflow: hidden; margin-top: 3px; }
     .progress-bar { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
     .macro-meta { display: flex; justify-content: space-between; font-size: 0.75rem; }
+
+    /* Micro-resumen Fibra / Sodio */
+    .micros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .micro-item { background: #090d16; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.72rem; display: flex; justify-content: space-between; align-items: center; }
 
     .food-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
     .food-row input[type="text"] { flex: 2; }
@@ -59,19 +73,22 @@
     .btn-outline { background: transparent; border: 1px dashed var(--muted); color: var(--muted); margin-bottom: 8px; }
     .btn-primary { background: var(--accent); color: #022c22; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-export { background: #1e293b; border: 1px solid var(--border); color: #38bdf8; font-weight: 500; font-size: 0.75rem; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .btn-export:active { background: #334155; }
+    .btn-secondary { background: #1e293b; border: 1px solid var(--border); color: #38bdf8; font-weight: 500; font-size: 0.75rem; padding: 8px; border-radius: 6px; cursor: pointer; text-align: center; }
 
     .status-msg { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 6px; min-height: 16px; }
 
-    .meals-list { margin-top: 8px; max-height: 240px; overflow-y: auto; }
-    .meal-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
-    .meal-item:last-child { border-bottom: none; }
+    /* Estructura por momentos de comida */
+    .meal-block { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; background: #0c121e; overflow: hidden; }
+    .meal-block-header { background: #172237; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; font-weight: 600; }
+    .meal-block-summary { font-size: 0.7rem; color: var(--accent); }
+    .meal-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-top: 1px solid #1a273e; font-size: 0.78rem; }
     .meal-desc { display: flex; flex-direction: column; }
     .meal-name { font-weight: 600; color: #fff; }
-    .meal-sub { font-size: 0.7rem; color: var(--muted); }
-    .meal-source { font-size: 0.65rem; color: #64748b; }
-    .meal-del { background: transparent; border: none; color: #ef4444; font-size: 0.95rem; cursor: pointer; padding: 4px 6px; }
+    .meal-sub { font-size: 0.68rem; color: var(--muted); }
+    .meal-del { background: transparent; border: none; color: #ef4444; font-size: 0.9rem; cursor: pointer; padding: 2px 4px; }
+
+    /* Gráfico semanal */
+    .chart-container { width: 100%; height: 180px; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -82,89 +99,209 @@
     <span class="date-badge" id="current-date-label"></span>
   </header>
 
-  <div class="card">
-    <div class="card-title">Objetivo Nutricional</div>
-    <div class="grid-2">
-      <div>
-        <label>Estrategia</label>
-        <select id="goal-select" onchange="updateTargets()">
-          <option value="mantenimiento">Mantenimiento (40C / 30P / 30G)</option>
-          <option value="definicion">Definición (30C / 40P / 30G)</option>
-          <option value="volumen">Volumen (50C / 25P / 25G)</option>
-          <option value="lowcarb">Low Carb (15C / 35P / 50G)</option>
+  <!-- Navegación por pestañas -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('diario')">📝 Registro</button>
+    <button class="tab-btn" onclick="switchTab('semanal')">📊 Semanal</button>
+    <button class="tab-btn" onclick="switchTab('perfil')">⚙️ Perfil / TDEE</button>
+  </div>
+
+  <!-- PESTAÑA 1: REGISTRO DIARIO -->
+  <div id="tab-diario" class="tab-content active">
+    <!-- Panel Resumen Diario -->
+    <div class="card">
+      <div class="card-title">
+        <span>Progreso de Hoy</span>
+        <span id="cal-count" style="color: var(--accent); font-weight: 700;">0 / 2000 kcal</span>
+      </div>
+      <div class="progress-container">
+        <div>
+          <div class="macro-meta">
+            <span style="color: var(--prot);">Proteína</span>
+            <span id="p-count">0 / 150g</span>
+          </div>
+          <div class="progress-bar-wrap"><div id="p-bar" class="progress-bar" style="background: var(--prot); width: 0%;"></div></div>
+        </div>
+        <div>
+          <div class="macro-meta">
+            <span style="color: var(--carb);">Carbohidratos</span>
+            <span id="c-count">0 / 200g</span>
+          </div>
+          <div class="progress-bar-wrap"><div id="c-bar" class="progress-bar" style="background: var(--carb); width: 0%;"></div></div>
+        </div>
+        <div>
+          <div class="macro-meta">
+            <span style="color: var(--fat);">Grasas</span>
+            <span id="f-count">0 / 67g</span>
+          </div>
+          <div class="progress-bar-wrap"><div id="f-bar" class="progress-bar" style="background: var(--fat); width: 0%;"></div></div>
+        </div>
+      </div>
+
+      <!-- Fibra y Sodio -->
+      <div class="micros-grid">
+        <div class="micro-item">
+          <span style="color: var(--fiber);">🌾 Fibra</span>
+          <span id="fiber-count">0 / 30g</span>
+        </div>
+        <div class="micro-item">
+          <span style="color: var(--sodium);">🧂 Sodio</span>
+          <span id="sodium-count">0 / 2300mg</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entrada Dinámica de Alimentos -->
+    <div class="card">
+      <div class="card-title">Carga de Alimentos</div>
+      <div style="margin-bottom: 10px;">
+        <label>Momento del día</label>
+        <select id="meal-slot-select">
+          <option value="Desayuno">🍳 Desayuno</option>
+          <option value="Almuerzo" selected>🥗 Almuerzo</option>
+          <option value="Merienda">☕ Merienda</option>
+          <option value="Cena">🍽️ Cena</option>
+          <option value="Snack">🍎 Snack / Colación</option>
         </select>
       </div>
-      <div>
-        <label>Calorías Diarias</label>
-        <input type="number" id="calories-goal" value="2000" step="50" onchange="updateTargets()">
-      </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">
-      <span>Progreso de Hoy</span>
-      <span id="cal-count" style="color: var(--accent); font-weight: 700;">0 / 2000 kcal</span>
-    </div>
-    <div class="progress-container">
-      <div>
-        <div class="macro-meta">
-          <span style="color: var(--prot);">Proteína</span>
-          <span id="p-count">0 / 150g</span>
+      <div id="inputs-container">
+        <div class="food-row">
+          <input type="text" placeholder="Ej: Pollo, Arroz yamani, Huevo..." class="food-name" onkeydown="handleKey(event)">
+          <input type="number" placeholder="Gramos" class="food-grams" onkeydown="handleKey(event)">
+          <button class="btn-remove" onclick="removeRow(this)">×</button>
         </div>
-        <div class="progress-bar-wrap"><div id="p-bar" class="progress-bar" style="background: var(--prot); width: 0%;"></div></div>
       </div>
-      <div>
-        <div class="macro-meta">
-          <span style="color: var(--carb);">Carbohidratos</span>
-          <span id="c-count">0 / 200g</span>
+      <button class="btn btn-outline" onclick="addRow()">+ Agregar otro casillero</button>
+      <button class="btn btn-primary" id="btn-submit" onclick="processMeals()">Buscar y Registrar</button>
+      <div class="status-msg" id="status-msg"></div>
+    </div>
+
+    <!-- Registro Agrupado por Momento del Día -->
+    <div class="card">
+      <div class="card-title">
+        <span>Comidas de Hoy</span>
+        <button onclick="clearToday()" style="background:none; border:none; color:var(--muted); font-size:0.75rem; cursor:pointer;">Reiniciar día</button>
+      </div>
+      <div id="meals-by-slot">
+        <div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESTAÑA 2: ANÁLISIS SEMANAL -->
+  <div id="tab-semanal" class="tab-content">
+    <div class="card">
+      <div class="card-title">Tendencia de los Últimos 7 Días</div>
+      <div class="grid-2" style="margin-bottom: 10px;">
+        <div class="micro-item">
+          <span>Promedio semanal:</span>
+          <strong id="weekly-avg" style="color: var(--accent);">0 kcal</strong>
         </div>
-        <div class="progress-bar-wrap"><div id="c-bar" class="progress-bar" style="background: var(--carb); width: 0%;"></div></div>
-      </div>
-      <div>
-        <div class="macro-meta">
-          <span style="color: var(--fat);">Grasas</span>
-          <span id="f-count">0 / 67g</span>
+        <div class="micro-item">
+          <span>Adherencia:</span>
+          <strong id="weekly-adherence" style="color: #38bdf8;">0%</strong>
         </div>
-        <div class="progress-bar-wrap"><div id="f-bar" class="progress-bar" style="background: var(--fat); width: 0%;"></div></div>
+      </div>
+      <div class="chart-container" id="weekly-chart">
+        <!-- Generación dinámica de gráfico SVG -->
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">Registrar Alimentos</div>
-    <div id="inputs-container">
-      <div class="food-row">
-        <input type="text" placeholder="Ej: Pollo, Arroz yamani, Queso..." class="food-name" onkeydown="handleKey(event)">
-        <input type="number" placeholder="Gramos" class="food-grams" onkeydown="handleKey(event)">
-        <button class="btn-remove" onclick="removeRow(this)">×</button>
+  <!-- PESTAÑA 3: PERFIL & CALCULADORA TDEE & BACKUPS -->
+  <div id="tab-perfil" class="tab-content">
+    <!-- Calculadora Mifflin-St Jeor -->
+    <div class="card">
+      <div class="card-title">Calculadora Metabólica (BMR / TDEE)</div>
+      <div class="grid-2" style="margin-bottom: 8px;">
+        <div>
+          <label>Sexo biológico</label>
+          <select id="calc-sex">
+            <option value="m">Hombre (+5)</option>
+            <option value="f">Mujer (-161)</option>
+          </select>
+        </div>
+        <div>
+          <label>Edad (años)</label>
+          <input type="number" id="calc-age" value="30">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom: 8px;">
+        <div>
+          <label>Peso actual (kg)</label>
+          <input type="number" id="calc-weight" value="75" step="0.5">
+        </div>
+        <div>
+          <label>Altura (cm)</label>
+          <input type="number" id="calc-height" value="175">
+        </div>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <label>Nivel de Actividad Física</label>
+        <select id="calc-activity">
+          <option value="1.2">Sedentario (poco o nada de ejercicio)</option>
+          <option value="1.375" selected>Ligero (1 a 3 días por semana)</option>
+          <option value="1.55">Moderado (3 a 5 días por semana)</option>
+          <option value="1.725">Intenso (6 a 7 días intensos)</option>
+        </select>
+      </div>
+      <div class="grid-2" style="margin-bottom: 12px;">
+        <div>
+          <label>Objetivo</label>
+          <select id="calc-goal">
+            <option value="mantenimiento">Mantenimiento (TDEE)</option>
+            <option value="deficit" selected>Déficit / Definición (-400 kcal)</option>
+            <option value="superavit">Superávit / Masa magra (+300 kcal)</option>
+          </select>
+        </div>
+        <div>
+          <label>Proteína por kg</label>
+          <select id="calc-prot-ratio">
+            <option value="1.6">1.6 g/kg (Moderado)</option>
+            <option value="1.8" selected>1.8 g/kg (Óptimo recomposición)</option>
+            <option value="2.0">2.0 g/kg (Definición estricta)</option>
+            <option value="2.2">2.2 g/kg (Alto rendimiento)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="calculateAndApplyTDEE()">Calcular y Aplicar a Metas</button>
+    </div>
+
+    <!-- Ajustes Manuales Rápidos -->
+    <div class="card">
+      <div class="card-title">Metas Manuales Activas</div>
+      <div class="grid-2">
+        <div>
+          <label>Calorías Diarias</label>
+          <input type="number" id="manual-cal-goal" value="2000" onchange="updateManualTargets()">
+        </div>
+        <div>
+          <label>Proteína (g)</label>
+          <input type="number" id="manual-p-goal" value="150" onchange="updateManualTargets()">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 8px;">
+        <div>
+          <label>Carbohidratos (g)</label>
+          <input type="number" id="manual-c-goal" value="200" onchange="updateManualTargets()">
+        </div>
+        <div>
+          <label>Grasas (g)</label>
+          <input type="number" id="manual-f-goal" value="67" onchange="updateManualTargets()">
+        </div>
       </div>
     </div>
-    <button class="btn btn-outline" onclick="addRow()">+ Agregar otro casillero</button>
-    <button class="btn btn-primary" id="btn-submit" onclick="processMeals()">Buscar y Registrar</button>
-    <div class="status-msg" id="status-msg"></div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">
-      <span>Consumido Hoy</span>
-      <button onclick="clearToday()" style="background:none; border:none; color:var(--muted); font-size:0.75rem; cursor:pointer;">Reiniciar día</button>
-    </div>
-    <div class="meals-list" id="meals-list">
-      <div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>
-    </div>
-  </div>
-
-  <!-- Gestión de Archivos y Copia de Seguridad -->
-  <div class="card">
-    <div class="card-title">Exportar Historial Mensual</div>
-    <div class="grid-2">
-      <button class="btn-export" onclick="exportToCSV()">
-        📊 Descargar Excel (CSV)
-      </button>
-      <button class="btn-export" onclick="exportBackupJSON()" style="color: var(--accent);">
-        💾 Copia JSON
-      </button>
+    <!-- Exportación y Restauración de Seguridad -->
+    <div class="card">
+      <div class="card-title">Seguridad y Copias de Datos</div>
+      <div class="grid-2" style="margin-bottom: 8px;">
+        <button class="btn-secondary" onclick="exportToCSV()">📊 Descargar Excel (CSV)</button>
+        <button class="btn-secondary" onclick="exportBackupJSON()" style="color: var(--accent);">💾 Descargar Copia (JSON)</button>
+      </div>
+      <button class="btn btn-outline" onclick="triggerRestoreJSON()">📥 Restaurar Copia de Seguridad (JSON)</button>
+      <input type="file" id="restore-file-input" accept=".json" style="display: none;" onchange="handleRestoreJSON(event)">
     </div>
   </div>
 </div>
@@ -176,33 +313,34 @@
     });
   }
 
+  // Base científica estándar con Fibra (g) y Sodio (mg) por cada 100g
   const CORE_DB = {
-    "pechuga": { name: "Pechuga de pollo cocida", cal: 165, p: 31.0, c: 0.0, f: 3.6, src: "USDA" },
-    "pollo": { name: "Pechuga de pollo cocida", cal: 165, p: 31.0, c: 0.0, f: 3.6, src: "USDA" },
-    "carne": { name: "Carne vacuna magra cocida", cal: 210, p: 26.0, c: 0.0, f: 11.0, src: "USDA" },
-    "bife": { name: "Bife de cuadril / lomo magro", cal: 205, p: 27.0, c: 0.0, f: 10.5, src: "USDA" },
-    "ossobuco": { name: "Ossobuco cocido", cal: 195, p: 28.0, c: 0.0, f: 9.0, src: "USDA" },
-    "merluza": { name: "Filete de merluza cocido", cal: 90, p: 18.0, c: 0.0, f: 1.5, src: "USDA" },
-    "pescado": { name: "Pescado blanco cocido", cal: 90, p: 18.0, c: 0.0, f: 1.5, src: "USDA" },
-    "atun": { name: "Atún al natural escurrido", cal: 116, p: 26.0, c: 0.0, f: 1.0, src: "USDA" },
-    "huevo": { name: "Huevo entero cocido", cal: 143, p: 13.0, c: 0.7, f: 9.5, src: "USDA" },
-    "clara": { name: "Clara de huevo", cal: 52, p: 11.0, c: 0.7, f: 0.2, src: "USDA" },
-    "arroz yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, src: "USDA" },
-    "yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, src: "USDA" },
-    "arroz blanco": { name: "Arroz blanco cocido", cal: 130, p: 2.7, c: 28.0, f: 0.3, src: "USDA" },
-    "arroz": { name: "Arroz cocido estándar", cal: 130, p: 2.7, c: 28.0, f: 0.3, src: "USDA" },
-    "avena": { name: "Avena arrollada en copos", cal: 389, p: 16.9, c: 66.0, f: 6.9, src: "USDA" },
-    "batata": { name: "Batata cocida / asada", cal: 86, p: 1.6, c: 20.0, f: 0.1, src: "USDA" },
-    "papa": { name: "Papa cocida", cal: 87, p: 1.9, c: 20.0, f: 0.1, src: "USDA" },
-    "lentejas": { name: "Lentejas cocidas", cal: 116, p: 9.0, c: 20.0, f: 0.4, src: "USDA" },
-    "aceite de oliva": { name: "Aceite de oliva virgen extra", cal: 884, p: 0.0, c: 0.0, f: 100.0, src: "USDA" },
-    "aceite": { name: "Aceite vegetal", cal: 884, p: 0.0, c: 0.0, f: 100.0, src: "USDA" },
-    "palta": { name: "Palta / Aguacate fresco", cal: 160, p: 2.0, c: 8.5, f: 14.7, src: "USDA" },
-    "nueces": { name: "Nueces peladas", cal: 654, p: 15.2, c: 13.7, f: 65.2, src: "USDA" },
-    "almendras": { name: "Almendras", cal: 579, p: 21.1, c: 21.6, f: 49.9, src: "USDA" },
-    "manzana": { name: "Manzana fresca con cáscara", cal: 52, p: 0.3, c: 13.8, f: 0.2, src: "USDA" },
-    "banana": { name: "Banana fresca", cal: 89, p: 1.1, c: 22.8, f: 0.3, src: "USDA" },
-    "tomate": { name: "Tomate redondo fresco", cal: 18, p: 0.9, c: 3.9, f: 0.2, src: "USDA" }
+    "pechuga": { name: "Pechuga de pollo cocida", cal: 165, p: 31.0, c: 0.0, f: 3.6, fib: 0.0, sod: 74, src: "USDA" },
+    "pollo": { name: "Pechuga de pollo cocida", cal: 165, p: 31.0, c: 0.0, f: 3.6, fib: 0.0, sod: 74, src: "USDA" },
+    "carne": { name: "Carne vacuna magra cocida", cal: 210, p: 26.0, c: 0.0, f: 11.0, fib: 0.0, sod: 65, src: "USDA" },
+    "bife": { name: "Bife cuadril / lomo magro", cal: 205, p: 27.0, c: 0.0, f: 10.5, fib: 0.0, sod: 60, src: "USDA" },
+    "ossobuco": { name: "Ossobuco cocido", cal: 195, p: 28.0, c: 0.0, f: 9.0, fib: 0.0, sod: 70, src: "USDA" },
+    "merluza": { name: "Filete de merluza cocido", cal: 90, p: 18.0, c: 0.0, f: 1.5, fib: 0.0, sod: 85, src: "USDA" },
+    "pescado": { name: "Pescado blanco cocido", cal: 90, p: 18.0, c: 0.0, f: 1.5, fib: 0.0, sod: 85, src: "USDA" },
+    "atun": { name: "Atún al natural escurrido", cal: 116, p: 26.0, c: 0.0, f: 1.0, fib: 0.0, sod: 330, src: "USDA" },
+    "huevo": { name: "Huevo entero cocido", cal: 143, p: 13.0, c: 0.7, f: 9.5, fib: 0.0, sod: 142, src: "USDA" },
+    "clara": { name: "Clara de huevo", cal: 52, p: 11.0, c: 0.7, f: 0.2, fib: 0.0, sod: 166, src: "USDA" },
+    "arroz yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, fib: 1.8, sod: 5, src: "USDA" },
+    "yamani": { name: "Arroz yamaní cocido", cal: 112, p: 2.3, c: 24.0, f: 0.9, fib: 1.8, sod: 5, src: "USDA" },
+    "arroz blanco": { name: "Arroz blanco cocido", cal: 130, p: 2.7, c: 28.0, f: 0.3, fib: 0.4, sod: 2, src: "USDA" },
+    "arroz": { name: "Arroz cocido estándar", cal: 130, p: 2.7, c: 28.0, f: 0.3, fib: 0.4, sod: 2, src: "USDA" },
+    "avena": { name: "Avena arrollada en copos", cal: 389, p: 16.9, c: 66.0, f: 6.9, fib: 10.6, sod: 2, src: "USDA" },
+    "batata": { name: "Batata cocida / asada", cal: 86, p: 1.6, c: 20.0, f: 0.1, fib: 3.0, sod: 36, src: "USDA" },
+    "papa": { name: "Papa cocida", cal: 87, p: 1.9, c: 20.0, f: 0.1, fib: 1.8, sod: 6, src: "USDA" },
+    "lentejas": { name: "Lentejas cocidas", cal: 116, p: 9.0, c: 20.0, f: 0.4, fib: 7.9, sod: 2, src: "USDA" },
+    "aceite de oliva": { name: "Aceite de oliva virgen", cal: 884, p: 0.0, c: 0.0, f: 100.0, fib: 0.0, sod: 2, src: "USDA" },
+    "aceite": { name: "Aceite vegetal", cal: 884, p: 0.0, c: 0.0, f: 100.0, fib: 0.0, sod: 2, src: "USDA" },
+    "palta": { name: "Palta / Aguacate fresco", cal: 160, p: 2.0, c: 8.5, f: 14.7, fib: 6.7, sod: 7, src: "USDA" },
+    "nueces": { name: "Nueces peladas", cal: 654, p: 15.2, c: 13.7, f: 65.2, fib: 6.7, sod: 2, src: "USDA" },
+    "almendras": { name: "Almendras", cal: 579, p: 21.1, c: 21.6, f: 49.9, fib: 12.5, sod: 1, src: "USDA" },
+    "manzana": { name: "Manzana con cáscara", cal: 52, p: 0.3, c: 13.8, f: 0.2, fib: 2.4, sod: 1, src: "USDA" },
+    "banana": { name: "Banana fresca", cal: 89, p: 1.1, c: 22.8, f: 0.3, fib: 2.6, sod: 1, src: "USDA" },
+    "tomate": { name: "Tomate fresco", cal: 18, p: 0.9, c: 3.9, f: 0.2, fib: 1.2, sod: 5, src: "USDA" }
   };
 
   function getTodayKey() {
@@ -212,23 +350,25 @@
 
   let state = {
     date: getTodayKey(),
-    goal: 'mantenimiento',
     targetCal: 2000,
+    targetP: 150,
+    targetC: 200,
+    targetF: 67,
     history: {},
     cachedWebFoods: {}
   };
 
   function initApp() {
-    const saved = localStorage.getItem('macro_tracker_store_v2');
+    const saved = localStorage.getItem('macro_tracker_store_v3');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         state.history = parsed.history || {};
-        state.goal = parsed.goal || 'mantenimiento';
         state.targetCal = parsed.targetCal || 2000;
+        state.targetP = parsed.targetP || 150;
+        state.targetC = parsed.targetC || 200;
+        state.targetF = parsed.targetF || 67;
         state.cachedWebFoods = parsed.cachedWebFoods || {};
-        document.getElementById('goal-select').value = state.goal;
-        document.getElementById('calories-goal').value = state.targetCal;
       } catch (e) {}
     }
 
@@ -239,18 +379,46 @@
       state.history[state.date] = [];
       saveState();
     }
-    
-    updateTargets();
+
+    syncInputsWithState();
+    renderDashboard();
     renderMeals();
+    renderWeeklyChart();
   }
 
   function saveState() {
-    localStorage.setItem('macro_tracker_store_v2', JSON.stringify({
+    localStorage.setItem('macro_tracker_store_v3', JSON.stringify({
       history: state.history,
-      goal: state.goal,
       targetCal: state.targetCal,
+      targetP: state.targetP,
+      targetC: state.targetC,
+      targetF: state.targetF,
       cachedWebFoods: state.cachedWebFoods
     }));
+  }
+
+  function syncInputsWithState() {
+    document.getElementById('manual-cal-goal').value = state.targetCal;
+    document.getElementById('manual-p-goal').value = state.targetP;
+    document.getElementById('manual-c-goal').value = state.targetC;
+    document.getElementById('manual-f-goal').value = state.targetF;
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+    if (tab === 'diario') {
+      document.querySelectorAll('.tab-btn')[0].classList.add('active');
+      document.getElementById('tab-diario').classList.add('active');
+    } else if (tab === 'semanal') {
+      document.querySelectorAll('.tab-btn')[1].classList.add('active');
+      document.getElementById('tab-semanal').classList.add('active');
+      renderWeeklyChart();
+    } else if (tab === 'perfil') {
+      document.querySelectorAll('.tab-btn')[2].classList.add('active');
+      document.getElementById('tab-perfil').classList.add('active');
+    }
   }
 
   function addRow() {
@@ -295,6 +463,8 @@
             const prot = n['proteins_100g'] !== undefined ? parseFloat(n['proteins_100g']) : null;
             const carbs = n['carbohydrates_100g'] !== undefined ? parseFloat(n['carbohydrates_100g']) : null;
             const fat = n['fat_100g'] !== undefined ? parseFloat(n['fat_100g']) : null;
+            const fib = n['fiber_100g'] !== undefined ? parseFloat(n['fiber_100g']) : 0.0;
+            const sod = n['sodium_100g'] !== undefined ? parseFloat(n['sodium_100g']) * 1000 : (n['salt_100g'] ? parseFloat(n['salt_100g']) * 400 : 0.0);
 
             if (cal !== null && prot !== null && carbs !== null && fat !== null) {
               return {
@@ -303,6 +473,8 @@
                 p: Math.round(prot * 10) / 10,
                 c: Math.round(carbs * 10) / 10,
                 f: Math.round(fat * 10) / 10,
+                fib: Math.round(fib * 10) / 10,
+                sod: Math.round(sod),
                 src: "Open Food Facts"
               };
             }
@@ -337,13 +509,14 @@
 
   async function processMeals() {
     const rows = document.querySelectorAll('.food-row');
+    const slot = document.getElementById('meal-slot-select').value;
     const itemsToProcess = [];
 
     rows.forEach(r => {
       const name = r.querySelector('.food-name').value.trim();
       const grams = parseFloat(r.querySelector('.food-grams').value);
       if (name && !isNaN(grams) && grams > 0) {
-        itemsToProcess.push({ name, grams });
+        itemsToProcess.push({ name, grams, slot });
       }
     });
 
@@ -363,12 +536,15 @@
         const factor = item.grams / 100;
         newItems.push({
           id: Date.now() + Math.random(),
+          slot: item.slot,
           name: macros.name || item.name,
           grams: item.grams,
           cal: Math.round(macros.cal * factor),
           p: Math.round(macros.p * factor * 10) / 10,
           c: Math.round(macros.c * factor * 10) / 10,
           f: Math.round(macros.f * factor * 10) / 10,
+          fib: Math.round((macros.fib || 0) * factor * 10) / 10,
+          sod: Math.round((macros.sod || 0) * factor),
           src: macros.src
         });
       } else {
@@ -387,6 +563,7 @@
       if (!state.history[state.date]) state.history[state.date] = [];
       state.history[state.date].push(...newItems);
       saveState();
+      renderDashboard();
       renderMeals();
 
       const container = document.getElementById('inputs-container');
@@ -403,6 +580,7 @@
   function deleteMeal(id) {
     state.history[state.date] = (state.history[state.date] || []).filter(item => item.id !== id);
     saveState();
+    renderDashboard();
     renderMeals();
   }
 
@@ -410,28 +588,9 @@
     if (confirm("¿Vaciar todos los alimentos registrados hoy?")) {
       state.history[state.date] = [];
       saveState();
+      renderDashboard();
       renderMeals();
     }
-  }
-
-  function updateTargets() {
-    state.goal = document.getElementById('goal-select').value;
-    state.targetCal = parseInt(document.getElementById('calories-goal').value) || 2000;
-    saveState();
-    renderDashboard();
-  }
-
-  function getMacroRatios(cal, goal) {
-    let cp = 0.4, pp = 0.3, fp = 0.3;
-    if (goal === 'definicion') { cp = 0.3; pp = 0.4; fp = 0.3; }
-    else if (goal === 'volumen') { cp = 0.5; pp = 0.25; fp = 0.25; }
-    else if (goal === 'lowcarb') { cp = 0.15; pp = 0.35; fp = 0.50; }
-
-    return {
-      p: Math.round((cal * pp) / 4),
-      c: Math.round((cal * cp) / 4),
-      f: Math.round((cal * fp) / 9)
-    };
   }
 
   function renderDashboard() {
@@ -441,44 +600,180 @@
       acc.p += cur.p;
       acc.c += cur.c;
       acc.f += cur.f;
+      acc.fib += (cur.fib || 0);
+      acc.sod += (cur.sod || 0);
       return acc;
-    }, { cal: 0, p: 0, c: 0, f: 0 });
-
-    const targets = getMacroRatios(state.targetCal, state.goal);
+    }, { cal: 0, p: 0, c: 0, f: 0, fib: 0, sod: 0 });
 
     document.getElementById('cal-count').innerText = `${totals.cal} / ${state.targetCal} kcal`;
-    document.getElementById('p-count').innerText = `${Math.round(totals.p)} / ${targets.p}g`;
-    document.getElementById('c-count').innerText = `${Math.round(totals.c)} / ${targets.c}g`;
-    document.getElementById('f-count').innerText = `${Math.round(totals.f)} / ${targets.f}g`;
+    document.getElementById('p-count').innerText = `${Math.round(totals.p)} / ${state.targetP}g`;
+    document.getElementById('c-count').innerText = `${Math.round(totals.c)} / ${state.targetC}g`;
+    document.getElementById('f-count').innerText = `${Math.round(totals.f)} / ${state.targetF}g`;
 
-    document.getElementById('p-bar').style.width = Math.min(100, (totals.p / targets.p) * 100) + '%';
-    document.getElementById('c-bar').style.width = Math.min(100, (totals.c / targets.c) * 100) + '%';
-    document.getElementById('f-bar').style.width = Math.min(100, (totals.f / targets.f) * 100) + '%';
+    document.getElementById('fiber-count').innerText = `${Math.round(totals.fib * 10) / 10} / 30g`;
+    document.getElementById('sodium-count').innerText = `${Math.round(totals.sod)} / 2300mg`;
+
+    document.getElementById('p-bar').style.width = Math.min(100, (totals.p / (state.targetP || 1)) * 100) + '%';
+    document.getElementById('c-bar').style.width = Math.min(100, (totals.c / (state.targetC || 1)) * 100) + '%';
+    document.getElementById('f-bar').style.width = Math.min(100, (totals.f / (state.targetF || 1)) * 100) + '%';
   }
 
   function renderMeals() {
-    renderDashboard();
-    const listEl = document.getElementById('meals-list');
+    const container = document.getElementById('meals-by-slot');
     const items = state.history[state.date] || [];
 
     if (items.length === 0) {
-      listEl.innerHTML = `<div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>`;
+      container.innerHTML = `<div style="color: var(--muted); font-size: 0.75rem; text-align: center; padding: 12px;">Sin registros hoy.</div>`;
       return;
     }
 
-    listEl.innerHTML = items.map(item => `
-      <div class="meal-item">
-        <div class="meal-desc">
-          <span class="meal-name">${item.name} (${item.grams}g)</span>
-          <span class="meal-sub">${item.cal} kcal | P: ${item.p}g · C: ${item.c}g · G: ${item.f}g</span>
-          <span class="meal-source">Fuente: ${item.src || 'Referencia verificada'}</span>
-        </div>
-        <button class="meal-del" onclick="deleteMeal(${item.id})">🗑️</button>
-      </div>
-    `).reverse().join('');
+    const slotsOrder = ["Desayuno", "Almuerzo", "Merienda", "Cena", "Snack"];
+    let html = "";
+
+    slotsOrder.forEach(slot => {
+      const slotItems = items.filter(it => (it.slot || 'Almuerzo') === slot);
+      if (slotItems.length > 0) {
+        const slotCal = slotItems.reduce((acc, c) => acc + c.cal, 0);
+        const slotProt = Math.round(slotItems.reduce((acc, c) => acc + c.p, 0));
+
+        html += `
+          <div class="meal-block">
+            <div class="meal-block-header">
+              <span>${slot}</span>
+              <span class="meal-block-summary">${slotCal} kcal · ${slotProt}g P</span>
+            </div>
+            ${slotItems.map(it => `
+              <div class="meal-item">
+                <div class="meal-desc">
+                  <span class="meal-name">${it.name} (${it.grams}g)</span>
+                  <span class="meal-sub">${it.cal} kcal \vert{} P:${it.p}g · C: ${it.c}g · G: ${it.f}g</span>
+                </div>
+                <button class="meal-del" onclick="deleteMeal(${it.id})">🗑️</button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    });
+
+    container.innerHTML = html;
   }
 
-  // Función para exportar todo el historial mensual/acumulado a CSV (Excel)
+  // Calculadora BMR / TDEE (Mifflin-St Jeor)
+  function calculateAndApplyTDEE() {
+    const sex = document.getElementById('calc-sex').value;
+    const age = parseFloat(document.getElementById('calc-age').value) || 30;
+    const weight = parseFloat(document.getElementById('calc-weight').value) || 70;
+    const height = parseFloat(document.getElementById('calc-height').value) || 170;
+    const activity = parseFloat(document.getElementById('calc-activity').value) || 1.375;
+    const goal = document.getElementById('calc-goal').value;
+    const protRatio = parseFloat(document.getElementById('calc-prot-ratio').value) || 1.8;
+
+    // Fórmula de Mifflin-St Jeor
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+    bmr += (sex === 'm') ? 5 : -161;
+
+    let tdee = bmr * activity;
+
+    // Ajuste por objetivo
+    let targetCal = tdee;
+    if (goal === 'deficit') targetCal -= 400;
+    else if (goal === 'superavit') targetCal += 300;
+
+    targetCal = Math.round(targetCal);
+
+    // Asignación de macronutrientes científicos
+    const targetP = Math.round(weight * protRatio);
+    const pCal = targetP * 4;
+
+    const targetF = Math.round(weight * 0.9); // 0.9g de grasa por kg
+    const fCal = targetF * 9;
+
+    const remainingCal = Math.max(0, targetCal - pCal - fCal);
+    const targetC = Math.round(remainingCal / 4);
+
+    state.targetCal = targetCal;
+    state.targetP = targetP;
+    state.targetC = targetC;
+    state.targetF = targetF;
+
+    saveState();
+    syncInputsWithState();
+    renderDashboard();
+
+    alert(`¡Metas Calculadas con Éxito!\n\n• Gasto Diario (TDEE): ${Math.round(tdee)} kcal\n• Meta Calórica: ${targetCal} kcal\n• Proteína: ${targetP}g (${protRatio}g/kg)\n• Carbohidratos: ${targetC}g\n• Grasas: ${targetF}g`);
+    switchTab('diario');
+  }
+
+  function updateManualTargets() {
+    state.targetCal = parseInt(document.getElementById('manual-cal-goal').value) || 2000;
+    state.targetP = parseInt(document.getElementById('manual-p-goal').value) || 150;
+    state.targetC = parseInt(document.getElementById('manual-c-goal').value) || 200;
+    state.targetF = parseInt(document.getElementById('manual-f-goal').value) || 67;
+    saveState();
+    renderDashboard();
+  }
+
+  // Gráfico semanal con SVG nativo
+  function renderWeeklyChart() {
+    const chartEl = document.getElementById('weekly-chart');
+    const days = [];
+    const now = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dayLabel = d.toLocaleDateString('es-ES', { weekday: 'narrow' }).toUpperCase();
+      const list = state.history[key] || [];
+      const totalCal = list.reduce((a, c) => a + c.cal, 0);
+      days.push({ key, label: dayLabel, cal: totalCal });
+    }
+
+    const totalKcalWeek = days.reduce((a, c) => a + c.cal, 0);
+    const daysWithData = days.filter(d => d.cal > 0).length || 1;
+    const avgCal = Math.round(totalKcalWeek / daysWithData);
+
+    document.getElementById('weekly-avg').innerText = `${avgCal} kcal`;
+
+    const target = state.targetCal || 2000;
+    const adherentDays = days.filter(d => d.cal > 0 && Math.abs(d.cal - target) <= (target * 0.15)).length;
+    const adherence = daysWithData > 0 ? Math.round((adherentDays / daysWithData) * 100) : 0;
+    document.getElementById('weekly-adherence').innerText = `${adherence}%`;
+
+    const maxChartCal = Math.max(target * 1.25, ...days.map(d => d.cal), 2500);
+
+    const svgWidth = 460;
+    const svgHeight = 160;
+    const barWidth = 36;
+    const spacing = (svgWidth - (barWidth * 7)) / 8;
+    const targetY = svgHeight - 30 - ((target / maxChartCal) * (svgHeight - 45));
+
+    let svg = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%">`;
+    
+    // Línea de meta diaria
+    svg += `<line x1="10" y1="${targetY}" x2="${svgWidth - 10}" y2="${targetY}" stroke="#10b981" stroke-dasharray="4" stroke-width="1.5" />`;
+    svg += `<text x="${svgWidth - 12}" y="${targetY - 5}" fill="#10b981" font-size="10" text-anchor="end">Meta ${target}</text>`;
+
+    days.forEach((d, i) => {
+      const x = spacing + i * (barWidth + spacing);
+      const barH = Math.max(3, (d.cal / maxChartCal) * (svgHeight - 45));
+      const y = svgHeight - 25 - barH;
+      const isToday = d.key === state.date;
+      const fillColor = isToday ? '#10b981' : (d.cal > target * 1.15 ? '#f43f5e' : '#38bdf8');
+
+      svg += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="4" fill="${fillColor}" />`;
+      svg += `<text x="${x + barWidth / 2}" y="${svgHeight - 8}" fill="${isToday ? '#fff' : '#8899b5'}" font-size="11" font-weight="${isToday ? 'bold' : 'normal'}" text-anchor="middle">${d.label}</text>`;
+      if (d.cal > 0) {
+        svg += `<text x="${x + barWidth / 2}" y="${y - 4}" fill="#fff" font-size="9" text-anchor="middle">${d.cal}</text>`;
+      }
+    });
+
+    svg += `</svg>`;
+    chartEl.innerHTML = svg;
+  }
+
+  // Exportar historial a CSV
   function exportToCSV() {
     const dates = Object.keys(state.history).sort();
     if (dates.length === 0 || dates.every(d => state.history[d].length === 0)) {
@@ -486,31 +781,29 @@
       return;
     }
 
-    // Cabecera CSV en español con BOM UTF-8 para que Excel lo abra perfecto
-    let csv = "\uFEFFFecha;Alimento;Gramos;Calorías (kcal);Proteínas (g);Carbohidratos (g);Grasas (g);Fuente\n";
+    let csv = "\uFEFFFecha;Momento;Alimento;Gramos;Calorías (kcal);Proteínas (g);Carbohidratos (g);Grasas (g);Fibra (g);Sodio (mg);Fuente\n";
 
     dates.forEach(date => {
       const items = state.history[date] || [];
       items.forEach(it => {
+        const cleanSlot = (it.slot || 'Almuerzo').replace(/;/g, ',');
         const cleanName = (it.name || '').replace(/;/g, ',');
         const cleanSrc = (it.src || 'Referencia').replace(/;/g, ',');
-        csv += `${date};"${cleanName}";${it.grams};${it.cal};${it.p};${it.c};${it.f};"${cleanSrc}"\n`;
+        csv += `${date};"${cleanSlot}";"${cleanName}";${it.grams};${it.cal};${it.p};${it.c};${it.f};${it.fib || 0};${it.sod || 0};"${cleanSrc}"\n`;
       });
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const now = new Date();
-    const fileName = `macrotracker_registro_${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}.csv`;
-
     link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", fileName);
+    link.setAttribute("download", `macrotracker_registro_${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
 
-  // Copia de seguridad técnica en JSON (para restaurar o archivar)
+  // Copia de seguridad en JSON
   function exportBackupJSON() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
     const link = document.createElement("a");
@@ -519,6 +812,47 @@
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  // Restaurar Copia de Seguridad JSON
+  function triggerRestoreJSON() {
+    document.getElementById('restore-file-input').click();
+  }
+
+  function handleRestoreJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed && parsed.history) {
+          if (confirm("Se importarán todos los datos del archivo de respaldo. ¿Deseas continuar?")) {
+            state.history = Object.assign(state.history, parsed.history);
+            if (parsed.targetCal) state.targetCal = parsed.targetCal;
+            if (parsed.targetP) state.targetP = parsed.targetP;
+            if (parsed.targetC) state.targetC = parsed.targetC;
+            if (parsed.targetF) state.targetF = parsed.targetF;
+            if (parsed.cachedWebFoods) state.cachedWebFoods = Object.assign(state.cachedWebFoods, parsed.cachedWebFoods);
+
+            saveState();
+            syncInputsWithState();
+            renderDashboard();
+            renderMeals();
+            renderWeeklyChart();
+            alert("¡Copia de seguridad restaurada correctamente!");
+            switchTab('diario');
+          }
+        } else {
+          alert("El archivo seleccionado no tiene un formato válido de MacroTracker.");
+        }
+      } catch (err) {
+        alert("Error al leer el archivo JSON: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = ""; // Limpiar input para permitir seleccionar el mismo archivo si es necesario
   }
 
   initApp();
